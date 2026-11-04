@@ -3,22 +3,24 @@ package models;
 import java.util.HashSet;
 import java.util.Set;
 
+// MODIFICADO: eliminado el import com.sun.istack.NotNull
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class Proyectos {
 
+    // Clave primaria de la tabla
     @Id
     @Column(name = "codigo", nullable = false)
     private String codigo;
 
-    @NotNull
+    @Column(name = "nombre", nullable = false)
     private String nombre;
 
-    @NotNull
+    @Column(name = "ciudad", nullable = false)
     private String ciudad;
 
+    // Un proyecto tiene muchas gestiones; la clave foránea vive en Gestion (campo "proyecto")
     @OneToMany(mappedBy = "proyecto", fetch = FetchType.LAZY)
     private Set<Gestion> gestiones = new HashSet<>();
 
@@ -63,6 +65,7 @@ public class Proyectos {
         this.gestiones = gestiones;
     }
 
+    // Añade la gestión al proyecto y mantiene los dos lados de la relación sincronizados
     public void addGestion(Gestion gestion) {
         this.gestiones.add(gestion);
         gestion.setProyecto(this);

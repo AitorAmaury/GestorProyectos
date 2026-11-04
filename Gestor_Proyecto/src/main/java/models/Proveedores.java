@@ -14,12 +14,15 @@ public class Proveedores {
     private String codigo;
 
     @NotNull
+    @Column(name = "nombre", nullable = false)
     private String nombre;
 
     @NotNull
+    @Column(name = "apellidos", nullable = false)
     private String apellidos;
 
     @NotNull
+    @Column(name = "direccionPostal", nullable = false)
     private String direccionPostal;
 
     @OneToMany(mappedBy = "proveedor", fetch = FetchType.LAZY)

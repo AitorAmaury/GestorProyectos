@@ -1,6 +1,6 @@
 package models;
 
-import com.sun.istack.NotNull;
+// MODIFICADO: eliminado el import com.sun.istack.NotNull
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -9,18 +9,21 @@ import java.util.Set;
 @Entity
 public class Piezas {
 
+    // Clave primaria de la tabla
     @Id
     @Column(name = "codigo", nullable = false)
     private String codigo;
 
-    @NotNull
+    @Column(name = "nombre", nullable = false)
     private String nombre;
 
-    @NotNull
+    @Column(name = "precio", nullable = false)
     private double precio;
 
+    // La descripción puede quedar vacía, por eso no lleva nullable = false
     private String descripcion;
 
+    // Una pieza aparece en muchas gestiones; la clave foránea vive en Gestion (campo "pieza")
     @OneToMany(mappedBy = "pieza", fetch = FetchType.LAZY)
     private Set<Gestion> gestiones = new HashSet<>();
 
@@ -75,6 +78,7 @@ public class Piezas {
         this.gestiones = gestiones;
     }
 
+    // Añade la gestión a la pieza y mantiene los dos lados de la relación sincronizados
     public void addGestion(Gestion gestion){
         this.gestiones.add(gestion);
         gestion.setPieza(this);

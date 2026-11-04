@@ -2,33 +2,37 @@ package models;
 
 import java.time.LocalDate;
 
-import com.sun.istack.NotNull;
+// MODIFICADO: eliminado el import com.sun.istack.NotNull
 import jakarta.persistence.*;
 
 @Entity
 public class Gestion {
 
+    // Clave primaria autonumérica: la genera MariaDB al insertar
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @NotNull
+    @Column(name = "fecha", nullable = false)
     private LocalDate fecha;
 
-    @NotNull
+    @Column(name = "cantidad", nullable = false)
     private Integer cantidad;
 
+    // Muchas gestiones pertenecen a un proveedor (columna proveedor_codigo en esta tabla)
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "proveedor_codigo",
             referencedColumnName = "codigo")
     private Proveedores proveedor;
 
+    // Muchas gestiones usan una pieza (columna pieza_codigo en esta tabla)
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "pieza_codigo",
             referencedColumnName = "codigo")
     private Piezas pieza;
 
+    // Muchas gestiones van a un proyecto (columna proyecto_codigo en esta tabla)
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "proyecto_codigo",
             referencedColumnName = "codigo")
