@@ -101,13 +101,29 @@ public class Gestion {
 
     @Override
     public String toString() {
+        //Comprobamos que no falte ningun dato antes de pedir su codigo
+        String codigoProveedor = "sin proveedor";
+        if (proveedor != null){
+            codigoProveedor = proveedor.getCodigo();
+        }
+
+        String codigoPieza = "sin pieza";
+        if (pieza != null) {
+            codigoPieza = pieza.getCodigo();
+        }
+
+        String codigoProyecto = "sin proyecto";
+        if (proyecto != null) {
+            codigoProyecto = proyecto.getCodigo();
+        }
+
         return "Gestion{" +
                 "id=" + id +
                 ", fecha=" + fecha +
                 ", cantidad=" + cantidad +
-                ", proveedor=" + proveedor.getCodigo() +
-                ", pieza=" + pieza.getCodigo() +
-                ", proyecto=" + proyecto.getCodigo() +
+                ", proveedor=" + codigoProveedor +
+                ", pieza=" + codigoPieza +
+                ", proyecto=" + codigoProyecto +
                 '}';
     }
 }
