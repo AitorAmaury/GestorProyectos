@@ -1,13 +1,21 @@
-// MODIFICADO: imports de los DAO nuevos
+import dao.GestionDao;
 import dao.PiezasDao;
 import dao.ProveedoresDao;
 import dao.ProyectosDao;
+import idao.IGestionDao;
 import idao.IPiezasDao;
 import idao.IProveedoresDao;
 import idao.IProyectosDao;
+import models.Gestion;
 import models.Piezas;
 import models.Proveedores;
 import models.Proyectos;
+
+// NUEVO: imports para trabajar con fechas
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 import java.util.List;
 import java.util.Scanner;
@@ -17,18 +25,24 @@ public class App {
     // DAO de cada módulo: los usan los métodos de sus menús
     // Se crean dentro de main para poder controlar un fallo de conexión
     private static IProveedoresDao proveedoresDao;
-    private static IPiezasDao piezasDao;           // NUEVO
-    private static IProyectosDao proyectosDao;     // NUEVO
+    private static IPiezasDao piezasDao;
+    private static IProyectosDao proyectosDao;
+    private static IGestionDao gestionDao;         // NUEVO
+
+    // NUEVO: formato de fecha dd/mm/aaaa en modo estricto (rechaza fechas imposibles como 31/02/2026)
+    private static final DateTimeFormatter FORMATO_FECHA =
+            DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
 
     public static void main(String[] args) {
 
         Scanner teclado = new Scanner(System.in);
 
-        // MODIFICADO: crear los DAO abre las conexiones; si falla, lo capturamos y salimos con un mensaje
+        // Crear los DAO abre las conexiones; si falla, lo capturamos y salimos con un mensaje
         try {
             proveedoresDao = new ProveedoresDao();
-            piezasDao = new PiezasDao();           // NUEVO
-            proyectosDao = new ProyectosDao();     // NUEVO
+            piezasDao = new PiezasDao();
+            proyectosDao = new ProyectosDao();
+            gestionDao = new GestionDao();         // NUEVO
         } catch (Exception e) {
             System.out.println("No se ha podido conectar con la base de datos: " + e.getMessage());
             System.out.println("Revisa que MariaDB está arrancado y vuelve a ejecutar la aplicación.");
@@ -65,13 +79,13 @@ public class App {
                     menuProveedores(teclado);
                     break;
                 case 2:
-                    menuPiezas(teclado);        // MODIFICADO: ya lleva a su módulo
+                    menuPiezas(teclado);
                     break;
                 case 3:
-                    menuProyectos(teclado);     // MODIFICADO: ya lleva a su módulo
+                    menuProyectos(teclado);
                     break;
                 case 4:
-                    System.out.println("Este módulo todavía no está disponible.");
+                    menuSuministros(teclado);   // MODIFICADO: ya lleva a su módulo
                     break;
                 case 5:
                     System.out.println("Ayuda: elige un módulo escribiendo su número y pulsa Enter.");
@@ -455,7 +469,7 @@ public class App {
         }
     }
 
-    // ---------- NUEVO: Submenú de piezas ----------
+    // ---------- Submenú de piezas ----------
 
     private static void menuPiezas(Scanner teclado) {
 
@@ -511,7 +525,7 @@ public class App {
         }
     }
 
-    // NUEVO: Alta de pieza: pide los datos, los valida y llama al DAO
+    // Alta de pieza: pide los datos, los valida y llama al DAO
     private static void altaPieza(Scanner teclado) {
 
         System.out.println("Alta de pieza (escribe volver en cualquier campo para cancelar).");
@@ -598,7 +612,7 @@ public class App {
         }
     }
 
-    // NUEVO: Baja de pieza: busca la pieza, la muestra, pide confirmación y la elimina
+    // Baja de pieza: busca la pieza, la muestra, pide confirmación y la elimina
     private static void bajaPieza(Scanner teclado) {
 
         System.out.println("Baja de pieza (escribe volver para cancelar).");
@@ -637,7 +651,7 @@ public class App {
         }
     }
 
-    // NUEVO: Modificar pieza: muestra la pieza y pide los datos nuevos; Enter mantiene el valor actual
+    // Modificar pieza: muestra la pieza y pide los datos nuevos; Enter mantiene el valor actual
     private static void modificarPieza(Scanner teclado) {
 
         System.out.println("Modificar pieza (escribe volver en cualquier campo para cancelar).");
@@ -736,7 +750,7 @@ public class App {
         }
     }
 
-    // NUEVO: Búsqueda de pieza por código
+    // Búsqueda de pieza por código
     private static void buscarPiezaPorCodigo(Scanner teclado) {
 
         String codigo;
@@ -761,7 +775,7 @@ public class App {
         }
     }
 
-    // NUEVO: Búsqueda de pieza por nombre (coincidencia parcial)
+    // Búsqueda de pieza por nombre (coincidencia parcial)
     private static void buscarPiezaPorNombre(Scanner teclado) {
 
         String texto;
@@ -788,7 +802,7 @@ public class App {
         }
     }
 
-    // NUEVO: Lista todas las piezas
+    // Lista todas las piezas
     private static void listarPiezas() {
 
         List<Piezas> todasLasPiezas = piezasDao.listarTodos();
@@ -801,7 +815,7 @@ public class App {
         }
     }
 
-    // ---------- NUEVO: Submenú de proyectos ----------
+    // ---------- Submenú de proyectos ----------
 
     private static void menuProyectos(Scanner teclado) {
 
@@ -861,7 +875,7 @@ public class App {
         }
     }
 
-    // NUEVO: Alta de proyecto: pide los tres datos, los valida y llama al DAO
+    // Alta de proyecto: pide los tres datos, los valida y llama al DAO
     private static void altaProyecto(Scanner teclado) {
 
         System.out.println("Alta de proyecto (escribe volver en cualquier campo para cancelar).");
@@ -926,7 +940,7 @@ public class App {
         }
     }
 
-    // NUEVO: Baja de proyecto: busca el proyecto, lo muestra, pide confirmación y lo elimina
+    // Baja de proyecto: busca el proyecto, lo muestra, pide confirmación y lo elimina
     private static void bajaProyecto(Scanner teclado) {
 
         System.out.println("Baja de proyecto (escribe volver para cancelar).");
@@ -965,7 +979,7 @@ public class App {
         }
     }
 
-    // NUEVO: Modificar proyecto: muestra el proyecto y pide los datos nuevos; Enter mantiene el valor actual
+    // Modificar proyecto: muestra el proyecto y pide los datos nuevos; Enter mantiene el valor actual
     private static void modificarProyecto(Scanner teclado) {
 
         System.out.println("Modificar proyecto (escribe volver en cualquier campo para cancelar).");
@@ -1038,7 +1052,7 @@ public class App {
         }
     }
 
-    // NUEVO: Búsqueda de proyecto por código
+    // Búsqueda de proyecto por código
     private static void buscarProyectoPorCodigo(Scanner teclado) {
 
         String codigo;
@@ -1063,7 +1077,7 @@ public class App {
         }
     }
 
-    // NUEVO: Búsqueda de proyecto por nombre (coincidencia parcial)
+    // Búsqueda de proyecto por nombre (coincidencia parcial)
     private static void buscarProyectoPorNombre(Scanner teclado) {
 
         String texto;
@@ -1090,7 +1104,7 @@ public class App {
         }
     }
 
-    // NUEVO: Búsqueda de proyecto por ciudad (coincidencia parcial)
+    // Búsqueda de proyecto por ciudad (coincidencia parcial)
     private static void buscarProyectoPorCiudad(Scanner teclado) {
 
         String texto;
@@ -1117,7 +1131,7 @@ public class App {
         }
     }
 
-    // NUEVO: Lista todos los proyectos
+    // Lista todos los proyectos
     private static void listarProyectos() {
 
         List<Proyectos> todosLosProyectos = proyectosDao.listarTodos();
@@ -1126,6 +1140,543 @@ public class App {
         } else {
             for (Proyectos proyecto : todosLosProyectos) {
                 System.out.println(proyecto);
+            }
+        }
+    }
+
+    // ---------- NUEVO: Submenú de suministros ----------
+
+    private static void menuSuministros(Scanner teclado) {
+
+        boolean volver = false;
+
+        while (!volver) {
+            System.out.println();
+            System.out.println("----- Suministros -----");
+            System.out.println("1. Alta de suministro");
+            System.out.println("2. Baja de suministro");
+            System.out.println("3. Modificar suministro");
+            System.out.println("4. Consultar por identificador");
+            System.out.println("5. Consultar por proveedor");
+            System.out.println("6. Consultar por pieza");
+            System.out.println("7. Consultar por proyecto");
+            System.out.println("8. Listar todos");
+            System.out.println("0. Volver al menú principal");
+            System.out.println("Elige una opción:");
+            String textoOpcion = teclado.nextLine().trim();
+
+            int opcion;
+            try {
+                opcion = Integer.parseInt(textoOpcion);
+            } catch (NumberFormatException e) {
+                System.out.println("Opción no válida: escribe solo el número de una opción del menú.");
+                continue;
+            }
+
+            switch (opcion) {
+                case 1:
+                    altaSuministro(teclado);
+                    break;
+                case 2:
+                    bajaSuministro(teclado);
+                    break;
+                case 3:
+                    modificarSuministro(teclado);
+                    break;
+                case 4:
+                    buscarSuministroPorId(teclado);
+                    break;
+                case 5:
+                    consultarSuministrosPorProveedor(teclado);
+                    break;
+                case 6:
+                    consultarSuministrosPorPieza(teclado);
+                    break;
+                case 7:
+                    consultarSuministrosPorProyecto(teclado);
+                    break;
+                case 8:
+                    listarSuministros();
+                    break;
+                case 0:
+                    volver = true;
+                    break;
+                default:
+                    System.out.println("Opción no válida: elige un número del menú.");
+                    break;
+            }
+        }
+    }
+
+    // NUEVO: Alta de suministro: elige proveedor, pieza y proyecto que ya existan, y pide fecha y cantidad
+    private static void altaSuministro(Scanner teclado) {
+
+        System.out.println("Alta de suministro (escribe volver en cualquier campo para cancelar).");
+
+        // Si no hay datos en alguna de las tres tablas, no se puede dar de alta
+        if (proveedoresDao.listarTodos().isEmpty()) {
+            System.out.println("Primero tienes que dar de alta al menos un proveedor.");
+            return;
+        }
+        if (piezasDao.listarTodos().isEmpty()) {
+            System.out.println("Primero tienes que dar de alta al menos una pieza.");
+            return;
+        }
+        if (proyectosDao.listarTodos().isEmpty()) {
+            System.out.println("Primero tienes que dar de alta al menos un proyecto.");
+            return;
+        }
+
+        // Proveedor: tiene que existir
+        Proveedores proveedorElegido = null;
+        while (true) {
+            System.out.println("Código del proveedor:");
+            String codigoProveedor = teclado.nextLine().trim();
+            if (codigoProveedor.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            if (!codigoProveedor.matches("[A-Za-z0-9]{1,10}")) {
+                System.out.println("Código no válido: usa solo letras y números, de 1 a 10 caracteres.");
+                continue;
+            }
+            proveedorElegido = proveedoresDao.buscarPorCodigo(codigoProveedor);
+            if (proveedorElegido == null) {
+                System.out.println("No existe ningún proveedor con ese código.");
+                continue;
+            }
+            break;
+        }
+        System.out.println("Proveedor elegido: " + proveedorElegido);
+
+        // Pieza: tiene que existir
+        Piezas piezaElegida = null;
+        while (true) {
+            System.out.println("Código de la pieza:");
+            String codigoPieza = teclado.nextLine().trim();
+            if (codigoPieza.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            if (!codigoPieza.matches("[A-Za-z0-9]{1,10}")) {
+                System.out.println("Código no válido: usa solo letras y números, de 1 a 10 caracteres.");
+                continue;
+            }
+            piezaElegida = piezasDao.buscarPorCodigo(codigoPieza);
+            if (piezaElegida == null) {
+                System.out.println("No existe ninguna pieza con ese código.");
+                continue;
+            }
+            break;
+        }
+        System.out.println("Pieza elegida: " + piezaElegida);
+
+        // Proyecto: tiene que existir
+        Proyectos proyectoElegido = null;
+        while (true) {
+            System.out.println("Código del proyecto:");
+            String codigoProyecto = teclado.nextLine().trim();
+            if (codigoProyecto.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            if (!codigoProyecto.matches("[A-Za-z0-9]{1,10}")) {
+                System.out.println("Código no válido: usa solo letras y números, de 1 a 10 caracteres.");
+                continue;
+            }
+            proyectoElegido = proyectosDao.buscarPorCodigo(codigoProyecto);
+            if (proyectoElegido == null) {
+                System.out.println("No existe ningún proyecto con ese código.");
+                continue;
+            }
+            break;
+        }
+        System.out.println("Proyecto elegido: " + proyectoElegido);
+
+        // Fecha: formato dd/mm/aaaa y que sea una fecha real
+        LocalDate fecha = null;
+        while (true) {
+            System.out.println("Fecha del suministro (formato dd/mm/aaaa, por ejemplo 03/11/2026):");
+            String textoFecha = teclado.nextLine().trim();
+            if (textoFecha.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            try {
+                fecha = LocalDate.parse(textoFecha, FORMATO_FECHA);
+            } catch (DateTimeParseException e) {
+                System.out.println("Fecha no válida: usa el formato dd/mm/aaaa con una fecha real.");
+                continue;
+            }
+            break;
+        }
+
+        // Cantidad: número entero entre 1 y 1000000
+        int cantidad = 0;
+        while (true) {
+            System.out.println("Cantidad (número entero entre 1 y 1000000):");
+            String textoCantidad = teclado.nextLine().trim();
+            if (textoCantidad.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            try {
+                cantidad = Integer.parseInt(textoCantidad);
+            } catch (NumberFormatException e) {
+                System.out.println("Cantidad no válida: escribe un número entero.");
+                continue;
+            }
+            if (cantidad < 1 || cantidad > 1000000) {
+                System.out.println("Cantidad no válida: debe estar entre 1 y 1000000.");
+                continue;
+            }
+            break;
+        }
+
+        // Con todos los datos validados, se los pasamos al DAO
+        Gestion suministroNuevo = new Gestion(fecha, cantidad, proveedorElegido, piezaElegida, proyectoElegido);
+        boolean guardado = gestionDao.insertar(suministroNuevo);
+
+        if (guardado) {
+            System.out.println("Suministro guardado correctamente.");
+        }
+    }
+
+    // NUEVO: Baja de suministro: busca el suministro, lo muestra, pide confirmación y lo elimina
+    private static void bajaSuministro(Scanner teclado) {
+
+        System.out.println("Baja de suministro (escribe volver para cancelar).");
+
+        int id = 0;
+        while (true) {
+            System.out.println("Identificador del suministro a eliminar:");
+            String textoId = teclado.nextLine().trim();
+            if (textoId.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            try {
+                id = Integer.parseInt(textoId);
+            } catch (NumberFormatException e) {
+                System.out.println("Identificador no válido: escribe un número entero.");
+                continue;
+            }
+            if (id < 1) {
+                System.out.println("Identificador no válido: debe ser un número mayor que 0.");
+                continue;
+            }
+            break;
+        }
+
+        Gestion suministroEncontrado = gestionDao.buscarPorId(id);
+        if (suministroEncontrado == null) {
+            System.out.println("No existe ningún suministro con ese identificador.");
+            return;
+        }
+
+        System.out.println(suministroEncontrado);
+        System.out.println("¿Seguro que quieres eliminarlo? (s/n):");
+        String confirmacion = teclado.nextLine().trim();
+
+        if (confirmacion.equalsIgnoreCase("s")) {
+            boolean eliminado = gestionDao.eliminar(id);
+            if (eliminado) {
+                System.out.println("Suministro eliminado correctamente.");
+            }
+        } else {
+            System.out.println("Operación cancelada.");
+        }
+    }
+
+    // NUEVO: Modificar suministro: muestra el suministro y pide los datos nuevos; Enter mantiene el valor actual
+    private static void modificarSuministro(Scanner teclado) {
+
+        System.out.println("Modificar suministro (escribe volver en cualquier campo para cancelar).");
+
+        int id = 0;
+        while (true) {
+            System.out.println("Identificador del suministro a modificar:");
+            String textoId = teclado.nextLine().trim();
+            if (textoId.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            try {
+                id = Integer.parseInt(textoId);
+            } catch (NumberFormatException e) {
+                System.out.println("Identificador no válido: escribe un número entero.");
+                continue;
+            }
+            if (id < 1) {
+                System.out.println("Identificador no válido: debe ser un número mayor que 0.");
+                continue;
+            }
+            break;
+        }
+
+        Gestion suministroActual = gestionDao.buscarPorId(id);
+        if (suministroActual == null) {
+            System.out.println("No existe ningún suministro con ese identificador.");
+            return;
+        }
+
+        System.out.println("Datos actuales: " + suministroActual);
+
+        // Proveedor nuevo (Enter = mantener el actual)
+        Proveedores nuevoProveedor = suministroActual.getProveedor();
+        while (true) {
+            System.out.println("Nuevo código de proveedor (Enter para mantener \"" + suministroActual.getProveedor().getCodigo() + "\"):");
+            String codigoProveedor = teclado.nextLine().trim();
+            if (codigoProveedor.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            if (codigoProveedor.isEmpty()) {
+                break;
+            }
+            if (!codigoProveedor.matches("[A-Za-z0-9]{1,10}")) {
+                System.out.println("Código no válido: usa solo letras y números, de 1 a 10 caracteres.");
+                continue;
+            }
+            Proveedores proveedorBuscado = proveedoresDao.buscarPorCodigo(codigoProveedor);
+            if (proveedorBuscado == null) {
+                System.out.println("No existe ningún proveedor con ese código.");
+                continue;
+            }
+            nuevoProveedor = proveedorBuscado;
+            break;
+        }
+
+        // Pieza nueva (Enter = mantener la actual)
+        Piezas nuevaPieza = suministroActual.getPieza();
+        while (true) {
+            System.out.println("Nuevo código de pieza (Enter para mantener \"" + suministroActual.getPieza().getCodigo() + "\"):");
+            String codigoPieza = teclado.nextLine().trim();
+            if (codigoPieza.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            if (codigoPieza.isEmpty()) {
+                break;
+            }
+            if (!codigoPieza.matches("[A-Za-z0-9]{1,10}")) {
+                System.out.println("Código no válido: usa solo letras y números, de 1 a 10 caracteres.");
+                continue;
+            }
+            Piezas piezaBuscada = piezasDao.buscarPorCodigo(codigoPieza);
+            if (piezaBuscada == null) {
+                System.out.println("No existe ninguna pieza con ese código.");
+                continue;
+            }
+            nuevaPieza = piezaBuscada;
+            break;
+        }
+
+        // Proyecto nuevo (Enter = mantener el actual)
+        Proyectos nuevoProyecto = suministroActual.getProyecto();
+        while (true) {
+            System.out.println("Nuevo código de proyecto (Enter para mantener \"" + suministroActual.getProyecto().getCodigo() + "\"):");
+            String codigoProyecto = teclado.nextLine().trim();
+            if (codigoProyecto.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            if (codigoProyecto.isEmpty()) {
+                break;
+            }
+            if (!codigoProyecto.matches("[A-Za-z0-9]{1,10}")) {
+                System.out.println("Código no válido: usa solo letras y números, de 1 a 10 caracteres.");
+                continue;
+            }
+            Proyectos proyectoBuscado = proyectosDao.buscarPorCodigo(codigoProyecto);
+            if (proyectoBuscado == null) {
+                System.out.println("No existe ningún proyecto con ese código.");
+                continue;
+            }
+            nuevoProyecto = proyectoBuscado;
+            break;
+        }
+
+        // Fecha nueva (Enter = mantener la actual)
+        LocalDate nuevaFecha = suministroActual.getFecha();
+        while (true) {
+            System.out.println("Nueva fecha dd/mm/aaaa (Enter para mantener " + suministroActual.getFecha().format(FORMATO_FECHA) + "):");
+            String textoFecha = teclado.nextLine().trim();
+            if (textoFecha.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            if (textoFecha.isEmpty()) {
+                break;
+            }
+            try {
+                nuevaFecha = LocalDate.parse(textoFecha, FORMATO_FECHA);
+            } catch (DateTimeParseException e) {
+                System.out.println("Fecha no válida: usa el formato dd/mm/aaaa con una fecha real.");
+                continue;
+            }
+            break;
+        }
+
+        // Cantidad nueva (Enter = mantener la actual)
+        int nuevaCantidad = suministroActual.getCantidad();
+        while (true) {
+            System.out.println("Nueva cantidad (Enter para mantener " + suministroActual.getCantidad() + "):");
+            String textoCantidad = teclado.nextLine().trim();
+            if (textoCantidad.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            if (textoCantidad.isEmpty()) {
+                break;
+            }
+            int cantidadLeida = 0;
+            try {
+                cantidadLeida = Integer.parseInt(textoCantidad);
+            } catch (NumberFormatException e) {
+                System.out.println("Cantidad no válida: escribe un número entero.");
+                continue;
+            }
+            if (cantidadLeida < 1 || cantidadLeida > 1000000) {
+                System.out.println("Cantidad no válida: debe estar entre 1 y 1000000.");
+                continue;
+            }
+            nuevaCantidad = cantidadLeida;
+            break;
+        }
+
+        // Montamos la ficha con los cambios y le ponemos el id del suministro que modificamos
+        Gestion suministroConCambios = new Gestion(nuevaFecha, nuevaCantidad, nuevoProveedor, nuevaPieza, nuevoProyecto);
+        suministroConCambios.setId(id);
+        boolean modificado = gestionDao.modificar(suministroConCambios);
+
+        if (modificado) {
+            System.out.println("Suministro modificado correctamente.");
+        }
+    }
+
+    // NUEVO: Consulta de un suministro por identificador
+    private static void buscarSuministroPorId(Scanner teclado) {
+
+        int id = 0;
+        while (true) {
+            System.out.println("Identificador a buscar (o volver para cancelar):");
+            String textoId = teclado.nextLine().trim();
+            if (textoId.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            try {
+                id = Integer.parseInt(textoId);
+            } catch (NumberFormatException e) {
+                System.out.println("Identificador no válido: escribe un número entero.");
+                continue;
+            }
+            if (id < 1) {
+                System.out.println("Identificador no válido: debe ser un número mayor que 0.");
+                continue;
+            }
+            break;
+        }
+
+        Gestion suministroEncontrado = gestionDao.buscarPorId(id);
+        if (suministroEncontrado == null) {
+            System.out.println("No existe ningún suministro con ese identificador.");
+        } else {
+            System.out.println(suministroEncontrado);
+        }
+    }
+
+    // NUEVO: Consulta de los suministros de un proveedor
+    private static void consultarSuministrosPorProveedor(Scanner teclado) {
+
+        String codigo;
+        while (true) {
+            System.out.println("Código del proveedor (o volver para cancelar):");
+            codigo = teclado.nextLine().trim();
+            if (codigo.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            if (codigo.matches("[A-Za-z0-9]{1,10}")) {
+                break;
+            }
+            System.out.println("Código no válido: usa solo letras y números, de 1 a 10 caracteres.");
+        }
+
+        List<Gestion> suministrosEncontrados = gestionDao.buscarPorProveedor(codigo);
+        if (suministrosEncontrados.isEmpty()) {
+            System.out.println("No hay suministros de ese proveedor.");
+        } else {
+            for (Gestion suministro : suministrosEncontrados) {
+                System.out.println(suministro);
+            }
+        }
+    }
+
+    // NUEVO: Consulta de los suministros de una pieza
+    private static void consultarSuministrosPorPieza(Scanner teclado) {
+
+        String codigo;
+        while (true) {
+            System.out.println("Código de la pieza (o volver para cancelar):");
+            codigo = teclado.nextLine().trim();
+            if (codigo.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            if (codigo.matches("[A-Za-z0-9]{1,10}")) {
+                break;
+            }
+            System.out.println("Código no válido: usa solo letras y números, de 1 a 10 caracteres.");
+        }
+
+        List<Gestion> suministrosEncontrados = gestionDao.buscarPorPieza(codigo);
+        if (suministrosEncontrados.isEmpty()) {
+            System.out.println("No hay suministros de esa pieza.");
+        } else {
+            for (Gestion suministro : suministrosEncontrados) {
+                System.out.println(suministro);
+            }
+        }
+    }
+
+    // NUEVO: Consulta de los suministros de un proyecto
+    private static void consultarSuministrosPorProyecto(Scanner teclado) {
+
+        String codigo;
+        while (true) {
+            System.out.println("Código del proyecto (o volver para cancelar):");
+            codigo = teclado.nextLine().trim();
+            if (codigo.equalsIgnoreCase("volver")) {
+                System.out.println("Operación cancelada.");
+                return;
+            }
+            if (codigo.matches("[A-Za-z0-9]{1,10}")) {
+                break;
+            }
+            System.out.println("Código no válido: usa solo letras y números, de 1 a 10 caracteres.");
+        }
+
+        List<Gestion> suministrosEncontrados = gestionDao.buscarPorProyecto(codigo);
+        if (suministrosEncontrados.isEmpty()) {
+            System.out.println("No hay suministros de ese proyecto.");
+        } else {
+            for (Gestion suministro : suministrosEncontrados) {
+                System.out.println(suministro);
+            }
+        }
+    }
+
+    // NUEVO: Lista todos los suministros
+    private static void listarSuministros() {
+
+        List<Gestion> todosLosSuministros = gestionDao.listarTodos();
+        if (todosLosSuministros.isEmpty()) {
+            System.out.println("Todavía no hay suministros guardados.");
+        } else {
+            for (Gestion suministro : todosLosSuministros) {
+                System.out.println(suministro);
             }
         }
     }
