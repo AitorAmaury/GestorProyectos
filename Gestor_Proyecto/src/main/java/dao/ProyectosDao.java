@@ -3,12 +3,17 @@ package dao;
 import idao.IProyectosDao;
 import jakarta.persistence.TypedQuery;
 import models.Proyectos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 // Extiende de tu Dao base (T = Proyectos, K = String, el tipo del código)
 public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDao {
+
+    // El cuaderno de bitácora de esta clase
+    private static final Logger logger = LoggerFactory.getLogger(ProyectosDao.class);
 
     // Método obligatorio del Dao base; busca por clave primaria
     @Override
@@ -22,11 +27,13 @@ public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDa
             // Si ya hay un proyecto con ese código, no lo duplicamos
             if (find(proyecto.getCodigo()) != null) {
                 System.out.println("Ya existe un proyecto con ese código.");
+                logger.warn("Alta rechazada: ya existe el proyecto {}", proyecto.getCodigo());
                 return false;
             }
 
             // create del Dao base: abre la transacción, guarda y confirma
             create(proyecto);
+            logger.info("Proyecto {} dado de alta", proyecto.getCodigo());
             return true;
 
         } catch (Exception e) {
@@ -36,6 +43,7 @@ public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDa
             }
             em.clear();
             System.out.println("Error en la base de datos al guardar el proyecto: " + e.getMessage());
+            logger.error("Error al guardar el proyecto " + proyecto.getCodigo(), e);
             return false;
         }
     }
@@ -47,6 +55,7 @@ public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDa
             Proyectos proyectoDeLaLibreta = find(proyecto.getCodigo());
             if (proyectoDeLaLibreta == null) {
                 System.out.println("No existe ningún proyecto con ese código.");
+                logger.warn("Modificación rechazada: no existe el proyecto {}", proyecto.getCodigo());
                 return false;
             }
 
@@ -56,6 +65,7 @@ public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDa
 
             // update del Dao base: abre la transacción, aplica los cambios y confirma
             update(proyectoDeLaLibreta);
+            logger.info("Proyecto {} modificado", proyecto.getCodigo());
             return true;
 
         } catch (Exception e) {
@@ -64,6 +74,7 @@ public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDa
             }
             em.clear();
             System.out.println("Error en la base de datos al modificar el proyecto: " + e.getMessage());
+            logger.error("Error al modificar el proyecto " + proyecto.getCodigo(), e);
             return false;
         }
     }
@@ -73,6 +84,7 @@ public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDa
         // Regla de integridad: no se borra un proyecto con suministros
         if (tieneSuministros(codigo)) {
             System.out.println("No se ha eliminado: el proyecto tiene suministros asociados o no se ha podido comprobar.");
+            logger.warn("Baja rechazada: el proyecto {} tiene suministros asociados", codigo);
             return false;
         }
 
@@ -80,11 +92,13 @@ public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDa
             Proyectos proyectoAEliminar = find(codigo);
             if (proyectoAEliminar == null) {
                 System.out.println("No existe ningún proyecto con ese código.");
+                logger.warn("Baja rechazada: no existe el proyecto {}", codigo);
                 return false;
             }
 
             // delete del Dao base: abre la transacción, elimina y confirma
             delete(proyectoAEliminar);
+            logger.info("Proyecto {} eliminado", codigo);
             return true;
 
         } catch (Exception e) {
@@ -93,6 +107,7 @@ public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDa
             }
             em.clear();
             System.out.println("Error en la base de datos al eliminar el proyecto: " + e.getMessage());
+            logger.error("Error al eliminar el proyecto " + codigo, e);
             return false;
         }
     }
@@ -105,6 +120,7 @@ public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDa
 
         } catch (Exception e) {
             System.out.println("Error en la base de datos al buscar el proyecto: " + e.getMessage());
+            logger.error("Error al buscar el proyecto " + codigo, e);
             return null;
         }
     }
@@ -124,6 +140,7 @@ public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDa
 
         } catch (Exception e) {
             System.out.println("Error en la base de datos al buscar por nombre: " + e.getMessage());
+            logger.error("Error al buscar proyectos por nombre '" + nombre + "'", e);
             return new ArrayList<>();
         }
     }
@@ -142,6 +159,7 @@ public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDa
 
         } catch (Exception e) {
             System.out.println("Error en la base de datos al buscar por ciudad: " + e.getMessage());
+            logger.error("Error al buscar proyectos por ciudad '" + ciudad + "'", e);
             return new ArrayList<>();
         }
     }
@@ -157,6 +175,7 @@ public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDa
 
         } catch (Exception e) {
             System.out.println("Error en la base de datos al listar los proyectos: " + e.getMessage());
+            logger.error("Error al listar los proyectos", e);
             return new ArrayList<>();
         }
     }
@@ -176,6 +195,7 @@ public class ProyectosDao extends Dao<Proyectos, String> implements IProyectosDa
         } catch (Exception e) {
             // Si no podemos comprobarlo, lo más seguro es tratarlo como "tiene suministros"
             System.out.println("Error en la base de datos al comprobar los suministros: " + e.getMessage());
+            logger.error("Error al comprobar los suministros del proyecto " + codigo, e);
             return true;
         }
     }
