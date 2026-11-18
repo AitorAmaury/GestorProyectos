@@ -1,6 +1,6 @@
 package gui;
 
-import dao.EstadisticasDao;       
+import dao.EstadisticasDao;
 import dao.GestionDao;
 import dao.PiezasDao;
 import dao.ProveedoresDao;

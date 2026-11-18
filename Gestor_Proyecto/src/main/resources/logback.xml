@@ -1,0 +1,20 @@
+<configuration>
+
+    <!-- Escribe en el fichero logs/app.log (se crea solo en la carpeta del proyecto) -->
+    <appender name="FICHERO" class="ch.qos.logback.core.FileAppender">
+        <file>logs/app.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{30} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Hibernate y el driver son muy habladores: solo sus avisos y errores -->
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="com.mysql" level="WARN"/>
+
+    <!-- Nuestro código: desde INFO hacia arriba -->
+    <root level="INFO">
+        <appender-ref ref="FICHERO"/>
+    </root>
+
+</configuration>
